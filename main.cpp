@@ -35,7 +35,9 @@ int main(int argc, char **argv) {
         do
         {
             if(strstr(exe.c_str(), pe32.szExeFile))
+            {
                 process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pe32.th32ProcessID);
+            }
 
         } while(Process32Next(hProcessSnap, &pe32));
     }
@@ -51,4 +53,6 @@ int main(int argc, char **argv) {
 
         if(!GetExitCodeProcess(process, &process_exit_code)) break;
     }
+
+    return 0;
 }
