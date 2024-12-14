@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     {
         do
         {
-            if(strstr(pe32.szExeFile, exe.c_str()))
+            if(strstr(exe.c_str(), pe32.szExeFile))
                 process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pe32.th32ProcessID);
 
         } while(Process32Next(hProcessSnap, &pe32));
