@@ -42,7 +42,11 @@ int main(int argc, char **argv) {
         } while(Process32Next(hProcessSnap, &pe32));
     }
 
-    if(process == INVALID_HANDLE_VALUE) return -1;
+    if(process == INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(hProcessSnap);
+        return -1;
+    }
 
     DWORD process_exit_code = STILL_ACTIVE;
 
@@ -53,6 +57,9 @@ int main(int argc, char **argv) {
 
         if(!GetExitCodeProcess(process, &process_exit_code)) break;
     }
+
+    CloseHandle(process);
+    CloseHandle(hProcessSnap);
 
     return 0;
 }
