@@ -1,0 +1,26 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-win:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Install deps
+        run: sudo apt update && sudo apt install -y g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 mingw-w64-tools wget && sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+      - name: Build EXE
+        run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../windows.cmake .. && make -j$(nproc)
+      - name: Upload EXE
+        uses: actions/upload-artifact@v3
+        with:
+            name: win-portable
+            path: build/heroic-epic-integration.exe
+            retention-days: 14
