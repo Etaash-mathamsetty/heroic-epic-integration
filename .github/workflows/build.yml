@@ -19,7 +19,7 @@ jobs:
       - name: Build EXE
         run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../windows.cmake .. && make -j$(nproc)
       - name: Upload EXE
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
             name: win-portable
             path: build/heroic-epic-integration.exe
