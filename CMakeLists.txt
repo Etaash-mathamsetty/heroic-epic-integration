@@ -3,6 +3,7 @@ find_package(PkgConfig)
 
 project(heroic-epic-integration)
 
+add_link_options(${LINK_OPTIONS})
 add_executable(heroic-epic-integration ${CMAKE_SOURCE_DIR}/main.cpp)
 
 target_compile_features(heroic-epic-integration PUBLIC cxx_std_17)
