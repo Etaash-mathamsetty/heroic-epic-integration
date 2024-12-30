@@ -1,8 +1,7 @@
 #include <windows.h>
 #include <shellapi.h>
 #include <tlhelp32.h>
-
-#include <iostream>
+#include <stdio.h>
 
 #define CP_UNIXCP     65010 /* Wine extension */
 
@@ -33,26 +32,37 @@ WCHAR* convert_to_win32(const WCHAR *unixW) {
 int wmain(int argc, WCHAR **argv) {
     if(argc < 2) return -1;
 
-    std::wstring args;
-    std::wstring exe = argv[1];
+    WCHAR* args;
+    const WCHAR* exe = argv[1];
+    int len = 1;
 
     for(int i = 2; i < argc; i++)
     {
-        args += L" ";
-        args += argv[i];
+        len += wcslen(argv[i]) + 1;
+    }
+
+    args = calloc(len, sizeof(*args));
+
+    if (!args) return -1;
+
+    for(int i = 2; i < argc; i++)
+    {
+        wcscat(args, L" ");
+        wcscat(args, argv[i]);
     }
 
     /* handle a unix path */
     if (exe[0] == L'/' || (exe[0] == L'"' && exe[1] == L'/')) {
-        WCHAR* temp = convert_to_win32(exe.c_str());
+        WCHAR* temp = convert_to_win32(exe);
         if (!temp) return -1;
         exe = temp;
         HeapFree(GetProcessHeap(), 0, temp);
     }
 
-    std::wcout << "executing: " << exe << L" " << args << std::endl;
+    printf("executing: %ls %ls\n", exe, args);
 
-    ShellExecuteW(NULL, NULL, exe.c_str(), args.c_str(), NULL, SW_SHOWNORMAL);
+    ShellExecuteW(NULL, NULL, exe, args, NULL, SW_SHOWNORMAL);
+    free(args);
 
     ShowWindow(GetConsoleWindow(), SW_HIDE);
 
@@ -68,7 +78,7 @@ int wmain(int argc, WCHAR **argv) {
     {
         do
         {
-            if(wcsstr(exe.c_str(), pe32.szExeFile))
+            if(wcsstr(exe, pe32.szExeFile))
             {
                 process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pe32.th32ProcessID);
                 break;
