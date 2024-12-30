@@ -18,7 +18,7 @@ WCHAR* convert_to_win32(const WCHAR *unixW) {
 
     if (!r) return NULL;
 
-    char *unixA = (char*)malloc(r);
+    char *unixA = malloc(r);
     r = WideCharToMultiByte(CP_UNIXCP, 0, unixW, -1, unixA, r, NULL, NULL);
 
     if (!r) return NULL;
