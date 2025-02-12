@@ -69,6 +69,8 @@ int wmain(int argc, WCHAR **argv) {
 
     ShowWindow(GetConsoleWindow(), SW_HIDE);
 
+    Sleep(5000);
+
     HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     HANDLE process = INVALID_HANDLE_VALUE;
 
