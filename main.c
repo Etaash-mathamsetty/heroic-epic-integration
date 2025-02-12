@@ -37,6 +37,7 @@ int wmain(int argc, WCHAR **argv) {
 
     WCHAR* args;
     const WCHAR* exe = argv[1];
+    WCHAR* temp = NULL;
     int len = 1;
 
     for(int i = 2; i < argc; i++)
@@ -56,10 +57,9 @@ int wmain(int argc, WCHAR **argv) {
 
     /* handle a unix path */
     if (exe[0] == L'/' || (exe[0] == L'"' && exe[1] == L'/')) {
-        WCHAR* temp = convert_to_win32(exe);
+        temp = convert_to_win32(exe);
         if (!temp) return -1;
         exe = temp;
-        HeapFree(GetProcessHeap(), 0, temp);
     }
 
     printf("executing: %ls %ls\n", exe, args);
@@ -108,6 +108,8 @@ int wmain(int argc, WCHAR **argv) {
 
     CloseHandle(process);
     CloseHandle(hProcessSnap);
+
+    if (temp) HeapFree(GetProcessHeap(), 0, temp);
 
     return 0;
 }
