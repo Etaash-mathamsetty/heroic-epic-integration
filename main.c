@@ -64,6 +64,16 @@ int wmain(int argc, WCHAR **argv) {
 
     printf("executing: %ls %ls\n", exe, args);
 
+    {
+        WCHAR *exe_cpy = calloc(wcslen(exe)+1, sizeof(*exe));
+        wcscpy(exe_cpy, exe);
+        WCHAR *last = wcsrchr(exe_cpy, '\\');
+        if (last) *last = L'\0';
+        printf("working dir: %ls\n", exe_cpy);
+        SetCurrentDirectoryW(exe_cpy);
+        free(exe_cpy);
+    }
+
     ShellExecuteW(NULL, NULL, exe, args, NULL, SW_SHOWNORMAL);
     free(args);
 
