@@ -74,6 +74,8 @@ int wmain(int argc, WCHAR **argv) {
         free(exe_cpy);
     }
 
+    SetEnvironmentVariable("SteamAppId", NULL);
+
     ShellExecuteW(NULL, NULL, exe, args, NULL, SW_SHOWNORMAL);
     free(args);
 
