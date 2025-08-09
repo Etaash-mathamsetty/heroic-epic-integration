@@ -33,14 +33,15 @@ WCHAR* convert_to_win32(const WCHAR *unixW) {
 }
 
 int wmain(int argc, WCHAR **argv) {
-    if(argc < 2) return -1;
+    if (argc < 2) return -1;
 
     WCHAR* args;
     const WCHAR* exe = argv[1];
     WCHAR* temp = NULL;
     int len = 1;
+    SHELLEXECUTEINFOW info = {0};
 
-    for(int i = 2; i < argc; i++)
+    for (int i = 2; i < argc; i++)
     {
         len += wcslen(argv[i]) + 1;
     }
@@ -49,7 +50,7 @@ int wmain(int argc, WCHAR **argv) {
 
     if (!args) return -1;
 
-    for(int i = 2; i < argc; i++)
+    for (int i = 2; i < argc; i++)
     {
         wcscat(args, L" ");
         wcscat(args, argv[i]);
@@ -62,66 +63,44 @@ int wmain(int argc, WCHAR **argv) {
         exe = temp;
     }
 
-    printf("executing: %ls %ls\n", exe, args);
+    printf("Wrapper: Executing: %ls %ls\n", exe, args);
 
+    /* guess and set working directory */
     {
         WCHAR *exe_cpy = calloc(wcslen(exe)+1, sizeof(*exe));
         wcscpy(exe_cpy, exe);
         WCHAR *last = wcsrchr(exe_cpy, '\\');
-        if (last) *last = L'\0';
-        printf("working dir: %ls\n", exe_cpy);
-        SetCurrentDirectoryW(exe_cpy);
+        if (last)
+        {
+            *last = L'\0';
+            printf("Wrapper: Working dir: %ls\n", exe_cpy);
+            SetCurrentDirectoryW(exe_cpy);
+        }
         free(exe_cpy);
     }
 
     SetEnvironmentVariable("SteamAppId", NULL);
 
-    ShellExecuteW(NULL, NULL, exe, args, NULL, SW_SHOWNORMAL);
+    info.cbSize = sizeof(info);
+    info.fMask = SEE_MASK_NOCLOSEPROCESS;
+    info.nShow = SW_SHOWNORMAL;
+    info.lpFile = exe;
+    info.lpParameters = args;
+
+    if (!ShellExecuteExW(&info)) return -1;
     free(args);
 
     ShowWindow(GetConsoleWindow(), SW_HIDE);
 
-    Sleep(5000);
+    if (!info.hProcess) return -1;
 
-    HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    HANDLE process = INVALID_HANDLE_VALUE;
+    Sleep(500);
 
-    if(hProcessSnap == INVALID_HANDLE_VALUE) return -1;
+    printf("Wrapper: Waiting for process termination...\n");
+    WaitForSingleObject(info.hProcess, INFINITE);
+    printf("Wrapper: Process terminated!\n");
 
-    PROCESSENTRY32W pe32;
-    pe32.dwSize = sizeof(PROCESSENTRY32W);
-
-    if(Process32FirstW(hProcessSnap, &pe32))
-    {
-        do
-        {
-            if(wcsstr(exe, pe32.szExeFile))
-            {
-                process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pe32.th32ProcessID);
-                break;
-            }
-
-        } while(Process32NextW(hProcessSnap, &pe32));
-    }
-
-    if(process == INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(hProcessSnap);
-        return -1;
-    }
-
-    DWORD process_exit_code = STILL_ACTIVE;
-
-    //waiting for process termination
-    while(process_exit_code == STILL_ACTIVE)
-    {
-        Sleep(1000);
-
-        if(!GetExitCodeProcess(process, &process_exit_code)) break;
-    }
-
-    CloseHandle(process);
-    CloseHandle(hProcessSnap);
+    CloseHandle(info.hProcess);
 
     if (temp) HeapFree(GetProcessHeap(), 0, temp);
 
